@@ -12,7 +12,7 @@ import ViewModels
 @main
 struct FigmaToSwiftUIAppApp: App {
     // Replace with your actual TMDb API key
-    private let movieService = MovieService(apiKey: "YOUR_API_KEY")
+    private let movieService = MovieService(apiKey: "6ba2bd3a511ec136e548936bddcdbddd")
     private let movieListViewModel: MovieListViewModel
 
     init() {

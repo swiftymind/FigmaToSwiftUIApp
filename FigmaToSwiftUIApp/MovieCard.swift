@@ -15,36 +15,24 @@ struct MovieCard: View {
                         .aspectRatio(2/3, contentMode: .fit)
                         .overlay {
                             ProgressView()
-                                .scaleEffect(1.2)
-                                .tint(.gray)
                         }
-                        .transition(.opacity)
                 case .success(let image):
                     image
                         .resizable()
                         .aspectRatio(2/3, contentMode: .fit)
-                        .transition(.opacity.combined(with: .scale))
                 case .failure:
                     Rectangle()
                         .fill(.gray.opacity(0.3))
                         .aspectRatio(2/3, contentMode: .fit)
                         .overlay {
-                            VStack(spacing: 8) {
-                                Image(systemName: "photo")
-                                    .font(.largeTitle)
-                                    .foregroundStyle(.gray)
-                                Text("Failed to load")
-                                    .font(.caption)
-                                    .foregroundStyle(.gray)
-                            }
+                            Image(systemName: "photo")
+                                .foregroundStyle(.gray)
                         }
-                        .transition(.opacity)
                 @unknown default:
                     EmptyView()
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .animation(.spring(duration: 0.3), value: movie.posterURL)
 
             // Movie Info
             VStack(alignment: .leading, spacing: 4) {
@@ -73,8 +61,6 @@ struct MovieCard: View {
         .background(.background)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(radius: 4, y: 2)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(movie.title), Released in \(movie.formattedReleaseDate.prefix(4)), Rating: \(movie.rating)")
     }
 }
 

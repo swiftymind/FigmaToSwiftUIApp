@@ -12,42 +12,58 @@ import ViewModels
 struct ContentView: View {
     let viewModel: MovieListViewModel
     @State private var gridColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
+    @State private var isSearching = false
 
     var body: some View {
         NavigationStack {
             ZStack {
                 // Main Content
                 ScrollView {
-                    LazyVGrid(columns: gridColumns, spacing: 24) {
-                        ForEach(viewModel.movies) { movie in
-                            MovieCard(movie: movie)
-                                .frame(height: 280)
+                    if !viewModel.movies.isEmpty {
+                        LazyVGrid(columns: gridColumns, spacing: 24) {
+                            ForEach(viewModel.movies) { movie in
+                                MovieCard(movie: movie)
+                                    .frame(height: 280)
+                            }
                         }
+                        .padding(.horizontal)
+                        .animation(.spring(duration: 0.3), value: viewModel.movies)
+                    } else if !viewModel.isLoading && viewModel.errorMessage == nil {
+                        ContentUnavailableView(
+                            "No Movies Found",
+                            systemImage: "film",
+                            description: Text("Try adjusting your search criteria")
+                        )
+                        .padding(.top, 40)
                     }
-                    .padding(.horizontal)
                 }
                 .refreshable {
-                    viewModel.loadPopularMovies()
+                    await viewModel.loadPopularMovies()
                 }
-
-                // Loading View
-                if viewModel.isLoading {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(.background.opacity(0.7))
+                .overlay {
+                    if viewModel.isLoading {
+                        ProgressView("Loading Movies...")
+                            .scaleEffect(1.2)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(.background.opacity(0.7))
+                    }
                 }
 
                 // Error View
                 if let errorMessage = viewModel.errorMessage {
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.largeTitle)
-                            .foregroundStyle(.red)
+                    ContentUnavailableView {
+                        Label("Error", systemImage: "exclamationmark.triangle")
+                    } description: {
                         Text(errorMessage)
-                            .multilineTextAlignment(.center)
+                    } actions: {
                         Button("Try Again") {
-                            viewModel.loadPopularMovies()
+                            Task {
+                                if viewModel.searchText.isEmpty {
+                                    await viewModel.loadPopularMovies()
+                                } else {
+                                    await viewModel.performSearch()
+                                }
+                            }
                         }
                         .buttonStyle(.bordered)
                     }
@@ -61,10 +77,26 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Movies")
-            .searchable(text: $viewModel.searchText, prompt: "Search movies...")
+            .searchable(
+                text: $viewModel.searchText,
+                prompt: "Search movies...",
+                suggestions: {
+                    if isSearching && !viewModel.searchText.isEmpty {
+                        ProgressView()
+                            .padding()
+                    }
+                }
+            )
+            .onChange(of: viewModel.searchText) { _, _ in
+                isSearching = true
+                // Search text changes are handled by the debounced publisher in ViewModel
+            }
+            .onChange(of: viewModel.movies) { _, _ in
+                isSearching = false
+            }
         }
-        .onAppear {
-            viewModel.loadPopularMovies()
+        .task {
+            await viewModel.loadPopularMovies()
         }
     }
 }
