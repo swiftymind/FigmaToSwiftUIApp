@@ -1,0 +1,324 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# CodeRabbit Configuration for iOS Swift/SwiftUI Development
+# Place this file in your project root directory as .coderabbit.yaml
+
+# Language and review settings (using English locale)
+language: en
+
+# Review configuration
+reviews:
+  # Enable detailed reviews with context
+  profile: "chill" # Options: "chill", "assertive"
+
+  # Request changes workflow
+  request_changes_workflow: true
+
+  # Auto-reviews for pull requests
+  auto_review:
+    enabled: true
+    drafts: false
+
+# Path-based review settings
+path_instructions:
+  # SwiftUI Views - Focus on performance and accessibility
+  - path: "**/*View.swift"
+    instructions: |
+      When reviewing SwiftUI views, pay special attention to:
+      - View composition and hierarchy optimization
+      - Proper use of @State, @Binding, @ObservedObject, @StateObject, @Environment
+      - Accessibility modifiers and labels (.accessibilityLabel, .accessibilityHint)
+      - Performance implications of complex view hierarchies
+      - Proper use of LazyVStack/LazyHStack for large lists
+      - Memory management and retain cycles in closures
+      - Dark mode and dynamic type support
+      - Internationalization and localization
+      - Main thread UI updates enforcement
+      - SwiftUI view body complexity (should not exceed 10-15 lines)
+
+  # View Models - Focus on architecture and state management
+  - path: "**/*ViewModel.swift"
+    instructions: |
+      For ViewModels, focus on:
+      - Proper separation of concerns and MVVM compliance
+      - State management patterns (@Observable over ObservableObject for iOS 17+)
+      - Error handling and user feedback mechanisms
+      - Testability and dependency injection patterns
+      - Thread safety for async operations
+      - Memory leak prevention and retain cycle detection
+      - Combine or async/await usage patterns
+      - Battery usage optimization
+
+  # Models and Data - Focus on data integrity and performance
+  - path: "**/Models/**/*.swift"
+    instructions: |
+      For data models, emphasize:
+      - Codable implementation correctness and error handling
+      - Data validation and sanitization
+      - Immutability where appropriate (struct over class)
+      - Performance of data transformations
+      - Thread safety for shared data
+      - Proper use of value vs reference types
+      - Data protection and encryption for sensitive data
+      - Memory efficient data structures
+
+  # Networking - Focus on security and error handling
+  - path: "**/Network/**/*.swift"
+    instructions: |
+      For networking code, prioritize:
+      - Secure network communication (HTTPS enforcement, certificate pinning)
+      - Proper error handling and user feedback
+      - Request/response data validation and sanitization
+      - Authentication and authorization handling
+      - Network reachability considerations
+      - Memory efficient data handling for large responses
+      - Privacy API usage compliance
+      - Background task handling for network operations
+
+  # Services and Repositories
+  - path: "**/Services/**/*.swift"
+    instructions: |
+      For service layer code, ensure:
+      - Proper dependency injection and protocol-based design
+      - Error handling and recovery mechanisms
+      - Keychain usage for sensitive data storage
+      - Background queue usage for heavy operations
+      - Testability through protocol abstractions
+      - Resource cleanup and memory management
+
+  # Tests - Focus on coverage and maintainability
+  - path: "**/*Tests.swift"
+    instructions: |
+      For test files, ensure:
+      - Comprehensive test coverage for critical paths (aim for 80%+)
+      - Proper use of @Test and @Suite attributes
+      - Async/await testing patterns with continuation handling
+      - Mock and stub implementations for dependencies
+      - Performance test considerations for heavy operations
+      - Test isolation and independence
+      - Clear test naming following Given-When-Then pattern
+      - Memory leak testing for view controllers and view models
+
+  # UI Tests - Focus on reliability and maintenance
+  - path: "**/*UITests.swift"
+    instructions: |
+      For UI tests, focus on:
+      - Reliable element identification using accessibility identifiers
+      - Proper wait conditions and timeouts
+      - Test data setup and cleanup
+      - Cross-device compatibility testing (iPhone/iPad)
+      - Accessibility testing coverage
+      - Performance and memory usage during tests
+      - Dark mode and dynamic type testing
+      - Internationalization testing
+
+# File-specific ignore patterns
+ignore:
+  # Build artifacts and generated files
+  - "**/build/**"
+  - "**/DerivedData/**"
+  - "**/.build/**"
+  - "**/xcuserdata/**"
+  - "**/*.xcarchive/**"
+
+  # Dependencies
+  - "**/Pods/**"
+  - "**/Carthage/**"
+  - "**/.swiftpm/**"
+  - "**/Package.resolved"
+  - "**/Sources/*/Resources/*.lproj/**"
+
+  # Generated and binary files
+  - "**/*.storyboard"
+  - "**/*.xib"
+  - "**/*.xcassets/**"
+  - "**/*.app/**"
+  - "**/*.framework/**"
+  - "**/*.dSYM/**"
+
+  # Documentation build outputs
+  - "**/docs/**"
+  - "**/.docc-build/**"
+
+# Custom review guidelines with iOS-specific rules and severity levels
+custom_instructions: |
+  You are an expert iOS developer reviewing Swift/SwiftUI code. Follow these principles with severity-based prioritization:
+
+  ## CRITICAL SEVERITY ISSUES (Block merge if found)
+  ### Security Vulnerabilities
+  - Hardcoded API keys, passwords, or sensitive credentials
+  - Insecure network communication (HTTP instead of HTTPS)
+  - Missing data protection for sensitive user data
+  - Improper certificate validation or SSL pinning bypass
+
+  ### Memory Management Critical Issues
+  - Strong reference cycles in closures (missing [weak self] or [unowned self])
+  - Force unwrapping in production code without proper guards
+  - Main thread blocking operations that can cause ANRs
+  - Memory leaks in view controllers or view models
+
+  ### Crash Prevention
+  - Force casting (as!) without proper error handling
+  - Array/Dictionary access without bounds checking
+  - Implicitly unwrapped optionals (!) in user-facing code
+  - Missing error handling in critical paths
+
+  ## HIGH SEVERITY ISSUES (Require attention before merge)
+  ### Performance Issues
+  - Expensive operations in SwiftUI view bodies
+  - Synchronous network calls on main thread
+  - Heavy computations without background queue usage
+  - Inefficient list rendering without lazy loading
+
+  ### iOS Platform Violations
+  - Direct UI updates from background threads
+  - Missing @MainActor for UI-related classes
+  - Improper background task handling
+  - Battery draining operations without optimization
+
+  ### Accessibility Violations
+  - Missing accessibility labels for interactive elements
+  - Poor VoiceOver navigation structure
+  - Missing dynamic type support
+  - Color contrast issues for accessibility compliance
+
+  ### Privacy and Security
+  - Missing privacy usage descriptions for sensitive APIs
+  - Improper keychain usage for credential storage
+  - Data collection without proper user consent
+  - Missing data encryption for sensitive information
+
+  ## MEDIUM SEVERITY ISSUES (Should be addressed)
+  ### Code Quality
+  - Non-standard Swift naming conventions
+  - Complex functions exceeding 50 lines
+  - Classes exceeding 200 lines
+  - Missing documentation for public APIs
+
+  ### SwiftUI Best Practices
+  - Using ObservableObject instead of @Observable (iOS 17+)
+  - Improper state management (@State vs @StateObject confusion)
+  - Unnecessary view rebuilds due to poor state design
+  - Missing view composition for complex hierarchies
+
+  ### Architecture Issues
+  - Violation of MVVM/MVC patterns
+  - Missing dependency injection
+  - Tight coupling between components
+  - Business logic in view controllers
+
+  ### Testing Gaps
+  - Missing unit tests for business logic
+  - No async testing for concurrent operations
+  - Missing performance tests for critical paths
+  - Poor test isolation causing flaky tests
+
+  ## LOW SEVERITY ISSUES (Nice to have)
+  ### Code Style
+  - Minor formatting inconsistencies
+  - Missing inline documentation
+  - Unused imports or variables
+  - Long parameter lists that could be grouped
+
+  ### Internationalization
+  - Hardcoded user-facing strings
+  - Missing localization for user interface text
+  - Date/number formatting without locale consideration
+  - Missing RTL language support
+
+  ## iOS-SPECIFIC PATTERNS TO ENFORCE
+
+  ### SwiftUI View Body Complexity Check
+  Flag view bodies with more than 10-15 lines of complex logic:
+  ```swift
+  // BAD - Complex logic in view body
+  var body: some View {
+      // 20+ lines of complex view hierarchy
+  }
+
+  // GOOD - Extracted to computed properties or subviews
+  var body: some View {
+      VStack {
+          headerView
+          contentView
+          footerView
+      }
+  }
+  ```
+
+  ### Force Unwrapping Detection
+  Flag force unwrapping except in controlled scenarios:
+  ```swift
+  // BAD
+  let result = someOptional!
+
+  // GOOD
+  guard let result = someOptional else {
+      fatalError("This should never happen in production")
+  }
+  ```
+
+  ### Main Thread UI Updates
+  Ensure UI updates happen on main thread:
+  ```swift
+  // BAD
+  DispatchQueue.global().async {
+      self.updateUI() // UI update on background thread
+  }
+
+  // GOOD
+  DispatchQueue.global().async {
+      // Background work
+      DispatchQueue.main.async {
+          self.updateUI() // UI update on main thread
+      }
+  }
+  ```
+
+  ### Hardcoded Strings Detection
+  Flag hardcoded user-facing strings:
+  ```swift
+  // BAD
+  Text("Welcome to our app")
+
+  // GOOD
+  Text(NSLocalizedString("welcome_message", comment: "Welcome message"))
+  ```
+
+  ### Memory Management in Closures
+  Ensure proper capture semantics:
+  ```swift
+  // BAD
+  someAsyncOperation { result in
+      self.handleResult(result) // Strong reference cycle risk
+  }
+
+  // GOOD
+  someAsyncOperation { [weak self] result in
+      self?.handleResult(result)
+  }
+  ```
+
+  ### Async/Await Best Practices
+  Prefer async/await over completion handlers:
+  ```swift
+  // GOOD for iOS 15+
+  func fetchData() async throws -> Data {
+      try await networkService.fetchData()
+  }
+
+  // Check for proper error handling in async contexts
+  ```
+
+  ## REVIEW APPROACH
+  - Be constructive and educational in feedback
+  - Explain the reasoning behind suggestions
+  - Provide code examples for better alternatives
+  - Prioritize critical and high severity issues
+  - Consider iOS version compatibility
+  - Focus on maintainability and scalability
+  - Ensure App Store compliance
+  - Validate accessibility and internationalization
+
+# Early access features
+early_access: false
